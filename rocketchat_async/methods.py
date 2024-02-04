@@ -1,5 +1,6 @@
 import hashlib
 import time
+import asyncio
 
 
 class RealtimeRequest:
@@ -216,8 +217,13 @@ class SubscribeToChannelMessages(RealtimeRequest):
             qualifier = event.get('t')
             unread = event.get('unread', False)
             re_received = bool(event.get('replies'))
-            return callback(channel_id, sender_id, msg_id, thread_id, msg,
-                            qualifier, unread, re_received)
+
+            if(asyncio.iscoroutinefunction(callback)):
+                return asyncio.create_task(callback(channel_id, sender_id, 
+                            msg_id, thread_id, msg, qualifier, unread, re_received))
+            else:
+                return callback(channel_id, sender_id, msg_id, thread_id, msg,
+                                qualifier, unread, re_received)
         return fn
 
     @classmethod
